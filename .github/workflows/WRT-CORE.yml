@@ -91,6 +91,7 @@ jobs:
           echo "WRT_TARGET=$(grep -m 1 -oP '^CONFIG_TARGET_\K[\w]+(?=\=y)' ./Config/$WRT_CONFIG.txt)" >> $GITHUB_ENV
           echo "WRT_KVER=none" >> $GITHUB_ENV
           echo "WRT_LIST=none" >> $GITHUB_ENV
+          echo "WRT_LIST_M=none" >> $GITHUB_ENV
 
       - name: Clone Code
         run: |
@@ -208,16 +209,121 @@ jobs:
             echo "WRT_KVER=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^kernel - \K[\d\.]+' {} \;)" >> $GITHUB_ENV
             echo "WRT_LIST=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^luci-(app|theme)[^ ]*' {} \; | tr '\n' ' ')" >> $GITHUB_ENV
 
-            #find ./bin/targets/ -iregex ".*\(buildinfo\|json\|sha256sums\|packages\)$" -exec rm -rf {} +
+            # 获取编译但未集成到固件的 luci 插件列表
+            echo "正在统计编译为模块的 luci 插件..."
+            
+            if [ -d "./bin" ]; then
+              # 从 Packages 索引文件获取
+              # OpenWRT 编译时会生成 Packages 文件，包含所有 ipk 的元信息
+              ALL_LUCI_PKGS=$(find ./bin -name "Packages" -type f -exec grep -oP '^Package: luci-(app|theme)[^ ]*' {} \; | sed 's/^Package: //' | sort -u | tr '\n' ' ')
+              
+              # 如果 Packages 文件不存在，使用从 ipk 文件名提取
+              if [ -z "$ALL_LUCI_PKGS" ]; then
+                echo "未找到 Packages 索引，使用备用方案..."
+                # 从 ipk 文件名提取（使用改进的正则）
+                ALL_LUCI_PKGS=$(find ./bin -name "luci-app-*.ipk" -o -name "luci-theme-*.ipk" | while read ipk; do
+                  basename "$ipk" | sed -E 's/_[0-9]+\..*//'
+                done | sort -u | tr '\n' ' ')
+              fi
+              
+              # 获取固件中已包含的 luci 插件
+              FIRMWARE_PKGS=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^luci-(app|theme)[^ ]*' {} \; | sort -u | tr '\n' ' ')
+              
+              # 计算差集：所有编译的 - 固件中的 = 模块化的
+              WRT_LIST_M=""
+              for pkg in $ALL_LUCI_PKGS; do
+                if ! echo "$FIRMWARE_PKGS" | grep -qw "$pkg"; then
+                  WRT_LIST_M="$WRT_LIST_M $pkg"
+                fi
+              done
+              
+              # 去除首尾空格
+              WRT_LIST_M=$(echo $WRT_LIST_M | xargs)
+            else
+              WRT_LIST_M=""
+            fi
+            
+            echo "WRT_LIST_M=$WRT_LIST_M" >> $GITHUB_ENV
+            
+            # 输出统计信息
+            Y_COUNT=$(echo $WRT_LIST | wc -w)
+            M_COUNT=$(echo $WRT_LIST_M | wc -w)
+            echo "固件集成插件数量 (=y): $Y_COUNT"
+            echo "模块插件数量 (=m): $M_COUNT"
+            echo "模块插件列表: $WRT_LIST_M"
 
-            for FILE in $(find ./bin/targets/ -type f -iname "*$WRT_TARGET*") ; do
+            # 删除不需要的文件，但保留所有 .ipk 文件
+            find ./bin/targets/ -type f \( -name "*.buildinfo" -o -name "*.json" -o -name "sha256sums" \) -exec rm -f {} +
+
+            # 处理固件文件
+            for FILE in $(find ./bin/targets/ -type f -iname "*$WRT_TARGET*" ! -name "*.ipk") ; do
               EXT=$(basename $FILE | cut -d '.' -f 2-)
               NAME=$(basename $FILE | cut -d '.' -f 1 | grep -io "\($WRT_TARGET\).*")
               NEW_FILE="$WRT_INFO"-"$WRT_BRANCH"-"$NAME"-"$WRT_DATE"."$EXT"
               mv -f $FILE ./upload/$NEW_FILE
             done
 
-            find ./bin/targets/ -type f -exec mv -f {} ./upload/ \;
+            # 移动其他非 .ipk 文件到 upload
+            find ./bin/targets/ -type f ! -name "*.ipk" -exec mv -f {} ./upload/ \;
+
+            # 打包软件包
+            echo "开始打包软件包..."
+            
+            # 创建软件包目录结构
+            PKG_DIR="./packages_archive"
+            mkdir -p $PKG_DIR
+            
+            # 复制 packages 目录（如果存在）
+            if [ -d "./bin/packages" ]; then
+              echo "正在复制 packages 目录..."
+              cp -r ./bin/packages $PKG_DIR/
+              PACKAGES_SIZE=$(du -sh $PKG_DIR/packages | cut -f1)
+              echo "packages 目录大小: $PACKAGES_SIZE"
+            fi
+            
+            # 复制 targets 目录下的 packages（如果存在）
+            if [ -d "./bin/targets" ]; then
+              echo "正在复制 targets 目录下的软件包..."
+              # 保持目录结构，复制所有 .ipk 文件
+              cd ./bin
+              find targets -name "*.ipk" -type f | while read -r ipk_file; do
+                ipk_dir=$(dirname "$ipk_file")
+                mkdir -p "../$PKG_DIR/$ipk_dir"
+                cp "$ipk_file" "../$PKG_DIR/$ipk_file"
+              done
+              cd ..
+              
+              if [ -d "$PKG_DIR/targets" ]; then
+                TARGETS_SIZE=$(du -sh $PKG_DIR/targets | cut -f1)
+                echo "targets 软件包大小: $TARGETS_SIZE"
+              fi
+            fi
+            
+            # 统计软件包数量
+            IPK_COUNT=$(find $PKG_DIR -name "*.ipk" -type f | wc -l)
+            echo "共找到 $IPK_COUNT 个软件包"
+            
+            # 压缩软件包
+            if [ $IPK_COUNT -gt 0 ]; then
+              TAR_NAME="Packages-$WRT_INFO-$WRT_BRANCH-$WRT_CONFIG-$WRT_DATE.tar.gz"
+              echo "正在压缩软件包为 $TAR_NAME ..."
+              cd $PKG_DIR
+              tar -czf ../$TAR_NAME .
+              cd ..
+              
+              # 获取压缩包大小
+              TAR_SIZE=$(ls -lh $TAR_NAME | awk '{print $5}')
+              echo "压缩包大小: $TAR_SIZE"
+              
+              # 移动到 upload 目录
+              mv $TAR_NAME ./upload/
+              echo "软件包压缩完成！"
+            else
+              echo "未找到任何软件包！"
+            fi
+            
+            # 清理临时目录
+            rm -rf $PKG_DIR
 
             make clean -j$(nproc)
           fi
@@ -248,4 +354,17 @@ jobs:
             WIFI密码：${{env.WRT_WORD}}
 
             内核版本：${{env.WRT_KVER}}
-            插件列表：${{env.WRT_LIST}}
+
+            📦 **固件集成插件**：
+            ${{env.WRT_LIST}}
+
+            📦 **可选安装插件（在软件包中）**：
+            ${{env.WRT_LIST_M}}
+            
+            ---
+            
+            📦 **软件包说明**：
+            - `Packages-*.tar.gz` 包含了所有编译生成的 .ipk 软件包
+            - 保留了原始目录结构（packages/ 和 targets/）
+            - 可用于后续安装额外的软件包
+            - 解压命令：`tar -xzf Packages-*.tar.gz`

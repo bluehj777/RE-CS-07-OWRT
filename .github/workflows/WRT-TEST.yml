@@ -34,15 +34,7 @@ on:
         default: 'true'
         required: true
         type: boolean
-      COMMIT:
-        description: '指定Commit'
-        required: false
-        type: string
-      WRT_USEAPK:
-        description: '是否使用APK'
-        default: true
-        required: true
-        type: boolean
+
 #CI权限
 permissions: write-all
 
@@ -71,7 +63,5 @@ jobs:
       WRT_SOURCE: ${{inputs.SOURCE}}
       #插件调整
       WRT_PACKAGE: ${{inputs.PACKAGE}}
-      #源码COMMIT
-      WRT_COMMIT: ${{inputs.COMMIT}}
       #仅输出配置文件
       WRT_TEST: ${{inputs.TEST}}

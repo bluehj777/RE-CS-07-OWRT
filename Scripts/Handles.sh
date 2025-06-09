@@ -77,5 +77,5 @@ if [ -f "$RUST_FILE" ]; then
 fi
 
 # 修正使用ccache编译vlmcsd的问题
-mkdir -p feeds/packages/net/vlmcsd/patches
-cp -f $GITHUB_WORKSPACE/patches/fix_vlmcsd_compile_with_ccache.patch feeds/packages/net/vlmcsd/patches
+#mkdir -p feeds/packages/net/vlmcsd/patches
+#cp -f $GITHUB_WORKSPACE/patches/fix_vlmcsd_compile_with_ccache.patch feeds/packages/net/vlmcsd/patches

@@ -30,10 +30,15 @@ if [ -f "$ARGON_CSS_FILE" ]; then
 	sed -i "s/#483d8b/#31a1a1/" $ARGON_CSS_FILE
 	cd $PKG_PATH && echo "Theme argon color has been fixed!"
 fi
-ARGON_BG_FILE=$(find ./ -type f -path "*/luci-theme-argon/htdocs/luci-static/argon/img/blank.png")
+
+#修改argon主题背景为空白
+ARGON_BG_FILE=$(find ./ -type f -path "*/luci-theme-argon/htdocs/luci-static/argon/img/bg.webp" | head -1)
 if [ -f "$ARGON_BG_FILE" ]; then
-	cp $GITHUB_WORKSPACE/Scripts/patches/bg.webp $ARGON_BG_FILE
-	cd $PKG_PATH && echo "Theme argon bg has been fixed!"
+    ARGON_DIR=$(dirname "$ARGON_BG_FILE")
+    if [ -f "$ARGON_DIR/blank.png" ]; then
+        cp "$ARGON_DIR/blank.png" "$ARGON_BG_FILE"
+        cd $PKG_PATH && echo "Theme argon bg has been fixed!"
+    fi
 fi
 
 #修改qca-nss-drv启动顺序

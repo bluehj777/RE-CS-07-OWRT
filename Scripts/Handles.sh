@@ -1,15 +1,15 @@
 #!/bin/bash
 
 PKG_PATH="$GITHUB_WORKSPACE/wrt/package/"
+ls -an $PKG_PATH
 
 #预置HomeProxy数据
 if [ -d *"homeproxy"* ]; then
-	echo " "
-
 	HP_RULE="surge"
 	HP_PATH="homeproxy/root/etc/homeproxy"
-
-	rm -rf ./$HP_PATH/resources/*
+        if [ ! -d "$HP_PATH" ]; then
+		HP_PATH="luci-app-homeproxy/root/etc/homeproxy"
+   	fi
 
 	git clone -q --depth=1 --single-branch --branch "release" "https://github.com/Loyalsoldier/surge-rules.git" ./$HP_RULE/
 	cd ./$HP_RULE/ && RES_VER=$(git log -1 --pretty=format:'%s' | grep -o "[0-9]*")
@@ -24,17 +24,18 @@ if [ -d *"homeproxy"* ]; then
 	cd $PKG_PATH && echo "homeproxy date has been updated!"
 fi
 
-#修改argon主题字体和颜色
-if [ -d *"luci-theme-argon"* ]; then
-	echo " "
-
-	cd ./luci-theme-argon/
-
-	sed -i "/font-weight:/ { /important/! { /\/\*/! s/:.*/: var(--font-weight);/ } }" $(find ./luci-theme-argon -type f -iname "*.css")
-	sed -i "s/primary '.*'/primary '#31a1a1'/; s/'0.2'/'0.5'/; s/'none'/'Wallhaven'/; s/'600'/'normal'/" ./luci-app-argon-config/root/etc/config/argon
-
-	cd $PKG_PATH && echo "theme-argon has been fixed!"
+#修改argon主题颜色
+ARGON_CSS_FILE=$(find ./ -type f -path "*/luci-theme-argon/htdocs/luci-static/argon/css/cascade.css")
+if [ -f "$ARGON_CSS_FILE" ]; then
+	sed -i "s/#483d8b/#31a1a1/" $ARGON_CSS_FILE
+	cd $PKG_PATH && echo "Theme argon color has been fixed!"
 fi
+ARGON_BG_FILE=$(find ./ -type f -path "*/luci-theme-argon/htdocs/luci-static/argon/img/blank.png")
+if [ -f "$ARGON_BG_FILE" ]; then
+	cp $GITHUB_WORKSPACE/Scripts/patches/bg.webp $ARGON_BG_FILE
+	cd $PKG_PATH && echo "Theme argon bg has been fixed!"
+fi
+
 
 #修改qca-nss-drv启动顺序
 NSS_DRV="../feeds/nss_packages/qca-nss-drv/files/qca-nss-drv.init"
@@ -64,6 +65,20 @@ if [ -f "$TS_FILE" ]; then
 	sed -i '/\/files/d' $TS_FILE
 
 	cd $PKG_PATH && echo "tailscale has been fixed!"
+fi
+
+#修复Socat配置文件冲突
+SOCAT_FILE=$(find ../feeds/packages/ -maxdepth 3 -type f -wholename "*/socat/Makefile")
+if [ -f "$SOCAT_FILE" ]; then
+	sed -i '/\/files/d' $SOCAT_FILE
+	cd $PKG_PATH && echo "socat has been fixed!"
+fi
+
+#修复ddns日志无法滚动问题
+DDNS_OVERVIEW_FILE=$(find ./ ../feeds/luci/ -type f -path "*/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js")
+if [ -f "$DDNS_OVERVIEW_FILE" ]; then
+	sed -i "s/'textarea', { 'style': 'width:100%;/'textarea', { 'style': 'width:100%; overflow-y:auto;/" $DDNS_OVERVIEW_FILE
+	cd $PKG_PATH && echo "DDNS log display has been fixed!"
 fi
 
 #修复Rust编译失败

@@ -36,7 +36,6 @@ if [ -f "$ARGON_BG_FILE" ]; then
 	cd $PKG_PATH && echo "Theme argon bg has been fixed!"
 fi
 
-
 #修改qca-nss-drv启动顺序
 NSS_DRV="../feeds/nss_packages/qca-nss-drv/files/qca-nss-drv.init"
 if [ -f "$NSS_DRV" ]; then

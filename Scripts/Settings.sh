@@ -12,7 +12,13 @@ sed -i "s/(\(luciversion || ''\))/(\1) + (' \/ Build by bluehj-$WRT_DATE')/g" $(
 #修改Argon主题footer
 ARGON_HTM_FILES=$(find . -path "*/luci-theme-argon/*" -name "*.htm" -type f)
 if [ -n "$ARGON_HTM_FILES" ]; then
-    sed -i "s/<%= ver\.distversion %>/<%= ver.distversion %> \/ Build by bluehj-$WRT_DATE/g" $ARGON_HTM_FILES
+    # 将日期格式从 yy.mm.dd-HH.MM.SS 转换为 yyyy.mm.dd
+    WRT_DATE_SHORT=$(echo $WRT_DATE | sed 's/\([0-9][0-9]\)\.\([0-9][0-9]\)\.\([0-9][0-9]\)-.*/20\1.\2.\3/')
+    
+    # 简化替换：隐藏 LuCI 版本，修改显示格式
+    sed -i 's|Powered by <%= ver\.luciname %> (<%= ver\.luciversion %>)</a> /|Powered by ImmortalWrt SNAPSHOT</a> Build by bluehj '"$WRT_DATE_SHORT"' <!--|g' $ARGON_HTM_FILES
+    sed -i 's|<%= ver\.distversion %>|-->|g' $ARGON_HTM_FILES
+    
     echo "Argon theme footer has been modified!"
 fi
 CFG_FILE="./package/base-files/files/bin/config_generate"

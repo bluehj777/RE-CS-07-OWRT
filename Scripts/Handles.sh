@@ -90,29 +90,3 @@ if [ -f "$RUST_FILE" ]; then
 
 	cd $PKG_PATH && echo "rust has been fixed!"
 fi
-
-# 修正使用ccache编译vlmcsd的问题
-VLMCSD_MAKEFILE=$(find ./ ../feeds/ -path "*/vlmcsd/Makefile" -type f | head -1)
-if [ -f "$VLMCSD_MAKEFILE" ]; then
-    VLMCSD_DIR=$(dirname "$VLMCSD_MAKEFILE")
-    mkdir -p "$VLMCSD_DIR/patches"
-    
-    # 创建补丁文件
-    cat > "$VLMCSD_DIR/patches/100-fix-ccache.patch" << 'EOF'
---- a/src/GNUmakefile
-+++ b/src/GNUmakefile
-@@ -72,6 +72,10 @@ VERBOSE ?= NO
- CC ?= gcc
- TARGETPLATFORM := $(shell LANG=en_US.UTF-8 $(CC) -v 2>&1 | grep '^Target: ' | cut -f 2 -d ' ')
- 
-+ifeq ($(findstring ccache,$(CC)),ccache)
-+	override CC := $(subst ccache ,,$(CC))
-+endif
-+
- ifneq (,$(findstring darwin,$(TARGETPLATFORM)))
-   DARWIN := 1
-   UNIX := 1
-EOF
-    
-    echo "vlmcsd ccache patch has been applied!"
-fi

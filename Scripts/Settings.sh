@@ -6,18 +6,17 @@ sed -i "s/luci-theme-bootstrap/luci-theme-$WRT_THEME/g" $(find ./feeds/luci/coll
 #修改immortalwrt.lan关联IP
 sed -i "s/192\.168\.[0-9]*\.[0-9]*/$WRT_IP/g" $(find ./feeds/luci/modules/luci-mod-system/ -type f -name "flash.js")
 
+#将日期格式从 yy.mm.dd-HH.MM.SS 转换为 yyyy.mm.dd
+WRT_DATE_SHORT=$(echo $WRT_DATE | sed 's/\([0-9][0-9]\)\.\([0-9][0-9]\)\.\([0-9][0-9]\)-.*/20\1.\2.\3/')
+
 #添加编译日期标识
-sed -i "s/(\(luciversion || ''\))/(\1) + (' \/ Build by bluehj-$WRT_DATE')/g" $(find ./feeds/luci/modules/luci-mod-status/ -type f -name "10_system.js")
+sed -i "s/(\(luciversion || ''\))/(\1) + (' \/ Build by bluehj $WRT_DATE_SHORT)/g" $(find ./feeds/luci/modules/luci-mod-status/ -type f -name "10_system.js")
 
 #修改Argon主题footer
 ARGON_HTM_FILES=$(find . -path "*/luci-theme-argon/*" -name "*.htm" -type f)
-if [ -n "$ARGON_HTM_FILES" ]; then
-    # 将日期格式从 yy.mm.dd-HH.MM.SS 转换为 yyyy.mm.dd
-    WRT_DATE_SHORT=$(echo $WRT_DATE | sed 's/\([0-9][0-9]\)\.\([0-9][0-9]\)\.\([0-9][0-9]\)-.*/20\1.\2.\3/')
-    
+if [ -n "$ARGON_HTM_FILES" ]; then    
     # 一步完成替换：隐藏原内容，显示新内容
-    sed -i 's|<a class="luci-link" href="https://github.com/openwrt/luci">Powered by <%= ver\.luciname %> (<%= ver\.luciversion %>)</a> /[[:space:]]*<%= ver\.distversion %>|Powered by ImmortalWrt SNAPSHOT Build by bluehj '"$WRT_DATE_SHORT"'|g' $ARGON_HTM_FILES
-    
+    sed -i 's|<a class="luci-link" href="https://github.com/openwrt/luci">Powered by <%= ver\.luciname %> (<%= ver\.luciversion %>)</a> /[[:space:]]*<%= ver\.distversion %>|Powered by ImmortalWrt SNAPSHOT Build by bluehj '"$WRT_DATE_SHORT"'|g' $ARGON_HTM_FILES    
     echo "Argon theme footer has been modified!"
 fi
 CFG_FILE="./package/base-files/files/bin/config_generate"

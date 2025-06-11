@@ -15,9 +15,8 @@ if [ -n "$ARGON_HTM_FILES" ]; then
     # 将日期格式从 yy.mm.dd-HH.MM.SS 转换为 yyyy.mm.dd
     WRT_DATE_SHORT=$(echo $WRT_DATE | sed 's/\([0-9][0-9]\)\.\([0-9][0-9]\)\.\([0-9][0-9]\)-.*/20\1.\2.\3/')
     
-    # 简化替换：隐藏 LuCI 版本，修改显示格式
-    sed -i 's|Powered by <%= ver\.luciname %> (<%= ver\.luciversion %>)</a> /|Powered by ImmortalWrt SNAPSHOT</a> Build by bluehj '"$WRT_DATE_SHORT"' <!--|g' $ARGON_HTM_FILES
-    sed -i 's|<%= ver\.distversion %>|-->|g' $ARGON_HTM_FILES
+    # 一步完成替换：隐藏原内容，显示新内容
+    sed -i 's|<a class="luci-link" href="https://github.com/openwrt/luci">Powered by <%= ver\.luciname %> (<%= ver\.luciversion %>)</a> /[[:space:]]*<%= ver\.distversion %>|Powered by ImmortalWrt SNAPSHOT Build by bluehj '"$WRT_DATE_SHORT"'|g' $ARGON_HTM_FILES
     
     echo "Argon theme footer has been modified!"
 fi

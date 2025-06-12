@@ -79,7 +79,7 @@ if [ -f "$SOCAT_FILE" ]; then
 fi
 
 #修复ddns日志无法滚动问题
-DDNS_OVERVIEW_FILE=$(find ./ ../feeds/luci/ -type f -path "*/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js")
+DDNS_OVERVIEW_FILE=$(find ./ -type f -path "*/luci-app-ddns/htdocs/luci-static/resources/view/ddns/overview.js")
 if [ -f "$DDNS_OVERVIEW_FILE" ]; then
 	sed -i "s/'textarea', { 'style': 'width:100%;/'textarea', { 'style': 'width:100%; overflow-y:auto;/" $DDNS_OVERVIEW_FILE
 	cd $PKG_PATH && echo "DDNS log display has been fixed!"

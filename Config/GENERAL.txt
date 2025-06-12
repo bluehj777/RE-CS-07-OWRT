@@ -36,9 +36,9 @@ CONFIG_PACKAGE_luci-app-vlmcsd=m
 CONFIG_PACKAGE_luci-app-wol=n
 CONFIG_PACKAGE_luci-theme-design=n
 # 禁用有依赖问题的包
-CONFIG_PACKAGE_mqttled=n
-CONFIG_PACKAGE_shadow-all=n
-CONFIG_PACKAGE_shadow-utils=n
+#CONFIG_PACKAGE_mqttled=n
+#CONFIG_PACKAGE_shadow-all=n
+#CONFIG_PACKAGE_shadow-utils=n
 
 #参数调整
 CONFIG_CCACHE=y

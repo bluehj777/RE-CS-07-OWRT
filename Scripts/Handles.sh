@@ -94,11 +94,3 @@ if [ -f "$RUST_FILE" ]; then
 
 	cd $PKG_PATH && echo "rust has been fixed!"
 fi
-
-# 解决dependency on 'python3-netifaces' 'libxcrypt'错误提示
-echo " "
-echo "Removing packages with missing dependencies..."
-# 直接删除这些包避免警告
-rm -rf ../feeds/packages/utils/mqttled
-rm -rf ../feeds/packages/utils/shadow
-echo "mqttled shadow packages have been removed!"

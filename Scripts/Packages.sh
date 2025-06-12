@@ -30,6 +30,8 @@ DELETE_PACKAGE "qbittorrent"
 DELETE_PACKAGE "qt6base"
 DELETE_PACKAGE "qt6tools"
 DELETE_PACKAGE "rblibtorrent"
+DELETE_PACKAGE "luci-app-vlmcsd"
+DELETE_PACKAGE "vlmcsd"
 
 
 #安装和更新软件包

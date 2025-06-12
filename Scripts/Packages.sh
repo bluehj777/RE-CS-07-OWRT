@@ -7,7 +7,7 @@ DELETE_PACKAGE() {
 	echo "Search for exact package: $PKG_NAME"
 	
 	# 查找精确匹配的目录
-	local FOUND_DIRS=$(find ./ ../feeds/luci/ ../feeds/packages/ -maxdepth 3 -type d -iname "$PKG_NAME" 2>/dev/null)
+	local FOUND_DIRS=$(find ./ ../feeds/luci/ ../feeds/packages/ -maxdepth 5 -type d -iname "$PKG_NAME" 2>/dev/null)
 	
 	# 删除找到的目录
 	if [ -n "$FOUND_DIRS" ]; then
@@ -29,7 +29,9 @@ DELETE_PACKAGE() {
 #DELETE_PACKAGE "rblibtorrent"
 DELETE_PACKAGE "luci-app-vlmcsd"
 DELETE_PACKAGE "vlmcsd"
-
+# 消除编译警告 mqttled/shadow dependency on python3-netifaces/libxcrypt
+DELETE_PACKAGE "mqttled"
+DELETE_PACKAGE "shadow"
 
 #安装和更新软件包
 UPDATE_PACKAGE() {

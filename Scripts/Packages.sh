@@ -25,6 +25,12 @@ DELETE_PACKAGE() {
 #DELETE_PACKAGE "socat"
 #DELETE_PACKAGE "openvpn-openssl"
 #DELETE_PACKAGE "openvpn-easy-rsa"
+DELETE_PACKAGE "luci-app-qbittorrent"
+DELETE_PACKAGE "qbittorrent"
+DELETE_PACKAGE "qt6base"
+DELETE_PACKAGE "qt6tools"
+DELETE_PACKAGE "rblibtorrent"
+
 
 #安装和更新软件包
 UPDATE_PACKAGE() {

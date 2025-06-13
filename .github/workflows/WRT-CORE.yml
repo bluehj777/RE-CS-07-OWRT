@@ -34,6 +34,9 @@ on:
       WRT_TEST:
         required: false
         type: string
+      WRT_USEAPK:
+        required: false
+        type: string
 
 env:
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -47,6 +50,7 @@ env:
   WRT_SOURCE: ${{inputs.WRT_SOURCE}}
   WRT_PACKAGE: ${{inputs.WRT_PACKAGE}}
   WRT_TEST: ${{inputs.WRT_TEST}}
+  WRT_USEAPK: ${{inputs.WRT_USEAPK}}
 
 jobs:
   core:
@@ -259,6 +263,7 @@ jobs:
             登录密码：${{env.WRT_PW}}
 
             内核版本：${{env.WRT_KVER}}
+            包管理器：${{ env.WRT_USEAPK == 'true' && 'APK' || 'IPK' }}
 
             📦 **固件集成插件**：
             ${{env.WRT_LIST}}

@@ -29,9 +29,6 @@ DELETE_PACKAGE "qt6tools"
 DELETE_PACKAGE "rblibtorrent"
 DELETE_PACKAGE "luci-app-vlmcsd"
 DELETE_PACKAGE "vlmcsd"
-# 消除编译警告 mqttled/shadow dependency on python3-netifaces/libxcrypt
-DELETE_PACKAGE "mqttled"
-DELETE_PACKAGE "shadow"
 
 #安装和更新软件包
 UPDATE_PACKAGE() {

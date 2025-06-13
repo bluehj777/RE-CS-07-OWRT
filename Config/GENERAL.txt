@@ -181,8 +181,4 @@ CONFIG_PACKAGE_ddns-scripts-cloudflare=y
 CONFIG_PACKAGE_openssl-util=y
 CONFIG_PACKAGE_bind-host=y
 CONFIG_PACKAGE_luci-app-qmodem=n
-CONFIG_PACKAGE_quectel-CM-5G=n
-CONFIG_PACKAGE_luci-app-qmodem-hc=n
-CONFIG_PACKAGE_luci-app-qmodem-mwan=n
-CONFIG_PACKAGE_luci-app-qmodem-sms=n
-CONFIG_PACKAGE_luci-app-qmodem-ttl=n
+
